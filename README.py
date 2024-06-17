@@ -1,52 +1,83 @@
 import tkinter as tk
+from tkinter import messagebox
+import math
 
-class MathSolverApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Math Problem Solver")
+# تابع ارزیابی عبارت
+def evaluate_expression(expression):
+    try:
+        # تبدیل توابع به فرمت قابل اجرا در پایتون
+        expression = expression.replace('^', '**').replace('π', str(math.pi)).replace('e', str(math.e))
+        result = str(eval(expression))
+        return result
+    except Exception as e:
+        messagebox.showerror("Error", "Invalid Expression")
+        return ""
 
-        self.create_widgets()
+# تابع پردازش کلیک دکمه
+def on_button_click(button_text):
+    current_text = display_var.get()
+    if button_text == "=":
+        result = evaluate_expression(current_text)
+        display_var.set(result)
+    elif button_text == "C":
+        display_var.set("")
+    elif button_text == "√":
+        result = str(math.sqrt(float(current_text)))
+        display_var.set(result)
+    else:
+        display_var.set(current_text + button_text)
 
-    def create_widgets(self):
-        # Text widget for displaying conversation
-        self.textbox = tk.Text(self.root, width=60, height=10, font=("Arial", 12))
-        self.textbox.pack(pady=20)
+# ایجاد پنجره اصلی
+root = tk.Tk()
+root.title("ماشین حساب مهندسی")
 
-        # Entry widget for user input
-        self.entry = tk.Entry(self.root, width=50, font=("Arial", 14))
-        self.entry.pack(ipady=10)
+# تنظیم رنگ پس‌زمینه ملایم
+root.configure(bg='#f0f0f0')
 
-        # Solve Button
-        self.solve_button = tk.Button(self.root, text="Solve", width=10, font=("Arial", 12), command=self.solve_problem)
-        self.solve_button.pack(pady=10)
+# متغیر برای نمایش مقدار در نمایشگر
+display_var = tk.StringVar()
 
-        # Welcome message
-        self.textbox.insert(tk.END, "Welcome! Please enter a math problem and press 'Solve'.\n\n")
+# ایجاد و تنظیم نمایشگر
+display = tk.Entry(root, textvariable=display_var, font=('Arial', 20), bd=10, insertwidth=2, width=20, borderwidth=4, bg='#ffffff')
+display.grid(row=0, column=0, columnspan=5)
 
-        # Bind the Entry widget click event to open the keyboard
-        self.entry.bind("<Button-1>", self.open_keyboard)
+# لیست دکمه‌ها
+buttons = [
+    '7', '8', '9', '/', 'sin',
+    '4', '5', '6', '*', 'cos',
+    '1', '2', '3', '-', 'tan',
+    '0', '.', '=', '+', 'log',
+    '(', ')', '^', '√', 'π',
+    'C', 'exp', 'e', 'mod', 'ln'
+]
 
-    def open_keyboard(self, event):
-        self.entry.focus_set()  # Set focus on the Entry widget
-        self.root.focus_force()  # Force focus back to the root window to show the keyboard
+# رنگ دکمه‌ها
+button_bg = '#dcdcdc'
+button_fg = '#000000'
+active_bg = '#a9a9a9'
 
-    def solve_problem(self):
-        problem = self.entry.get()
+# تابع برای تغییر رنگ دکمه هنگام فشردن
+def on_press(event):
+    event.widget.config(bg=active_bg)
 
-        try:
-            result = eval(problem)
-            self.textbox.insert(tk.END, f"You: {problem}\n")
-            self.textbox.insert(tk.END, f"Bot: The result is: {result}\n\n")
-            self.entry.delete(0, tk.END)  # Clear the entry field after solving
-        except Exception as e:
-            self.textbox.insert(tk.END, f"You: {problem}\n")
-            self.textbox.insert(tk.END, f"Bot: Invalid input or error: {e}\n\n")
-            self.entry.delete(0, tk.END)  # Clear the entry field after an error
+# تابع برای بازگرداندن رنگ دکمه به حالت اولیه
+def on_release(event):
+    event.widget.config(bg=button_bg)
 
-def main():
-    root = tk.Tk()
-    app = MathSolverApp(root)
-    root.mainloop()
+# ایجاد و تنظیم دکمه‌ها
+row_val = 1
+col_val = 0
+for button_text in buttons:
+    button = tk.Button(root, text=button_text, font=('Arial', 14),
+                       bg=button_bg, fg=button_fg, bd=0,
+                       command=lambda text=button_text: on_button_click(text))
+    button.grid(row=row_val, column=col_val, padx=5, pady=5, ipadx=20, ipady=20)
+    button.bind("<ButtonPress-1>", on_press)
+    button.bind("<ButtonRelease-1>", on_release)
+    col_val += 1
+    if col_val > 4:
+        col_val = 0
+        row_val += 1
 
-if __name__ == "__main__":
-    main()
+# شروع حلقه اصلی برنامه
+root.mainloop()
